@@ -54,7 +54,7 @@ func (m *StaffController) LoginStaff(c *fiber.Ctx) error {
 	login := repository.LoginStaff(*payload)
 
 	if login {
-		return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Staff login successfully"})
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Staff login successfully"})
 	} else {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "failed", "message": login})
 	}

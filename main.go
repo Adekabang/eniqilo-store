@@ -16,9 +16,11 @@ func main() {
 
 	// Controllers
 	staffController := controller.NewStaffController(db)
+	productController := controller.NewProductController(db)
 
 	// Routes
-	routes.SetupRoutes(app, staffController)
+	routes.StaffRoutes(app, staffController)
+	routes.ProductRoutes(app, productController)
 
 	app.Listen(":8080")
 }
