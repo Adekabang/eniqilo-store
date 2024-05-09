@@ -8,4 +8,5 @@ import (
 func SetupRoutes(app *fiber.App, staffController *controller.StaffController) {
 	v1Staff := app.Group("/v1/staff")
 	v1Staff.Post("/register", staffController.RegisterStaff)
+	v1Staff.Post("/login", staffController.LoginStaff)
 }
