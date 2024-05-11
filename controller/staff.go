@@ -39,10 +39,10 @@ func (m *StaffController) RegisterStaff(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Staff registered successfully", "data": fiber.Map{"userId": register.Data.UserId, "phoneNumber": register.Data.PhoneNumber, "name": register.Data.Name, "accessToken": register.Message}})
 
 	} else if register.Message == "23505" {
-		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"status": "failed", "msg": "User Already Registered"})
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"status": "failed", "msg": "Staff Already Registered"})
 
 	} else {
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "failed", "msg": "server error"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "failed", "msg": "server error"})
 
 	}
 }
@@ -67,7 +67,7 @@ func (m *StaffController) LoginStaff(c *fiber.Ctx) error {
 	if login.Status == "success" {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Staff logged successfully", "data": fiber.Map{"phoneNumber": login.Data.PhoneNumber, "name": login.Data.Name, "accessToken": login.Message}})
 	} else if login.Message == "user not found" {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"status": "failed", "msg": "phoneNumber not found"})
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"status": "failed", "msg": "staff's phoneNumber not found"})
 	} else if login.Message == "wrong password" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "failed", "msg": "wrong password"})
 	} else {
