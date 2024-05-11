@@ -29,16 +29,21 @@ func (m *StaffController) RegisterStaff(c *fiber.Ctx) error {
 	errName := utils.ValidateName(payload.Name)
 	errPassword := utils.ValidatePassword(payload.Password)
 	if !errPhoneNumber || !errName || !errPassword {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "failed"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "failed", "error": fiber.Map{"phone-number": errPhoneNumber, "name": errName, "password": errPassword}})
 	}
 
 	repository := repository.NewStaffRepository(DB)
 	register := repository.RegisterStaff(*payload)
 
-	if register {
-		return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Staff registered successfully"})
+	if register.Status == "success" {
+		return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Staff registered successfully", "data": fiber.Map{"userId": register.Data.UserId, "phoneNumber": register.Data.PhoneNumber, "name": register.Data.Name, "accessToken": register.Message}})
+
+	} else if register.Message == "23505" {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"status": "failed", "msg": "User Already Registered"})
+
 	} else {
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "failed", "message": register})
+		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "failed", "msg": "server error"})
+
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"github.com/Adekabang/eniqilo-store/model"
 	"github.com/Adekabang/eniqilo-store/utils"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type StaffRepository struct {
@@ -18,32 +19,42 @@ func NewStaffRepository(db *sql.DB) StaffRepositoryInterface {
 }
 
 // RegisterStaff implements UserRepositoryInterface
-func (m *StaffRepository) RegisterStaff(payload model.RegisterStaff) bool {
-
-	hashedPassword, err := utils.HashPassword(payload.Password)
+func (m *StaffRepository) RegisterStaff(staff model.RegisterStaff) model.AuthenticationStaffResponse {
+	var response model.AuthenticationStaffResponse
+	hashedPassword, err := utils.HashPassword(staff.Password)
 
 	if err != nil {
 		log.Println(err.Error())
-		return false
+		response = model.AuthenticationStaffResponse{Status: "failed", Message: "failed hashing"}
+		return response
 	}
 
-	uuidUser := uuid.New()
+	uuidStaff := uuid.New().String()
 
 	stmt, err := m.Db.Prepare("INSERT INTO staff (id, phone_number, name, password_hash) VALUES ($1,$2,$3,$4)")
 	if err != nil {
 		log.Println(err)
-		return false
+		response = model.AuthenticationStaffResponse{Status: "failed", Message: "server failed"}
+		return response
 	}
 	defer stmt.Close()
 
-	_, err2 := stmt.Exec(uuidUser, payload.PhoneNumber, payload.Name, hashedPassword)
+	_, err2 := stmt.Exec(uuidStaff, staff.PhoneNumber, staff.Name, hashedPassword)
 	if err2 != nil {
 		log.Println(err2)
-		return false
+		log.Println(string(err2.(*pq.Error).Code))
+		response = model.AuthenticationStaffResponse{Status: "failed", Message: string(err2.(*pq.Error).Code)}
+		return response
 	}
+	token, err := utils.GenerateToken(uuidStaff)
 
-	// token belom
-	return true
+	if err != nil {
+		log.Println(err)
+		response = model.AuthenticationStaffResponse{Status: "failed", Message: "error"}
+	}
+	response = model.AuthenticationStaffResponse{Status: "success", Message: token, Data: model.StaffData{UserId: uuidStaff, PhoneNumber: staff.PhoneNumber, Name: staff.Name}}
+	return response
+
 }
 
 func (m *StaffRepository) LoginStaff(payload model.LoginStaff) bool {

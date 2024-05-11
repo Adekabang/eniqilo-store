@@ -10,3 +10,14 @@ type LoginStaff struct {
 	PhoneNumber string `json:"phoneNumber"`
 	Password    string `json:"password"`
 }
+
+type StaffData struct {
+	UserId      string
+	PhoneNumber string
+	Name        string
+}
+type AuthenticationStaffResponse struct {
+	Status  string    `json:"status"`
+	Data    StaffData `json:"data"`
+	Message string    `json:"message"`
+}
