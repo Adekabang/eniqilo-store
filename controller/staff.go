@@ -55,12 +55,22 @@ func (m *StaffController) LoginStaff(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "failed", "message": err.Error()})
 	}
 
+	errPhoneNumber := utils.ValidatePhoneNumber(payload.PhoneNumber)
+	errPassword := utils.ValidatePassword(payload.Password)
+	if !errPhoneNumber || !errPassword {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "failed", "msg": "phoneNumber: not null, minLength: 10, maxLength: 16, should start with `+` and international calling codes, password:not null, minLength 5, maxLength 15"})
+	}
+
 	repository := repository.NewStaffRepository(DB)
 	login := repository.LoginStaff(*payload)
 
-	if login {
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Staff login successfully"})
+	if login.Status == "success" {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Staff logged successfully", "data": fiber.Map{"phoneNumber": login.Data.PhoneNumber, "name": login.Data.Name, "accessToken": login.Message}})
+	} else if login.Message == "user not found" {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"status": "failed", "msg": "phoneNumber not found"})
+	} else if login.Message == "wrong password" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "failed", "msg": "wrong password"})
 	} else {
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "failed", "message": login})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "failed", "msg": "server error"})
 	}
 }
